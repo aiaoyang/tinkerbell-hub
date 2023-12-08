@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -55,7 +54,7 @@ var kexecCmd = &cobra.Command{
 		// If we specify no kernelPath then we will fallback to autodetect and ignore the initrd and cmdline that may be passed
 		// by environment variables
 		if kernelPath == "" {
-			grubFile, err := ioutil.ReadFile(fmt.Sprintf("%s/boot/grub/grub.cfg", mountAction))
+			grubFile, err := os.ReadFile(fmt.Sprintf("%s/boot/grub/grub.cfg", mountAction))
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -79,7 +78,7 @@ var kexecCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		// /mountAction/boot/vmlinuz
+		// /mountAction/boot/initrd
 		initrd, err := os.Open(initrdMountPath) // For read access.
 		if err != nil {
 			log.Fatal(err)
