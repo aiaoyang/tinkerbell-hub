@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"time"
@@ -70,13 +70,17 @@ func RetrieveData() (*Metadata, error) {
 		return nil, errors.New("unable to discover the metadata server from environment variable [MIRROR_HOST]")
 	}
 
+	metadataPort := os.Getenv("MIRROR_HOST_PORT")
+	if metadataPort == "" {
+		metadataPort = "5601"
+	}
 	metadataClient := http.Client{
 		Timeout: time.Second * 60, // Timeout after 60 seconds (seems massively long is this dial-up?)
 	}
-
-	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, fmt.Sprintf("http://%s:50061/metadata", metadataURL), nil)
+	metaServerURL := fmt.Sprintf("http://%s:%s/metadata", metadataURL, metadataPort)
+	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, metaServerURL, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fetch %s: %w", metaServerURL, err)
 	}
 
 	req.Header.Set("User-Agent", "bootkit")
@@ -90,7 +94,7 @@ func RetrieveData() (*Metadata, error) {
 		defer res.Body.Close()
 	}
 
-	body, readErr := ioutil.ReadAll(res.Body)
+	body, readErr := io.ReadAll(res.Body)
 	if readErr != nil {
 		return nil, err
 	}
