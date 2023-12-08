@@ -32,7 +32,7 @@ func main() {
 	// Create the /mountAction mountpoint (no folders exist previously in scratch container)
 	err := os.Mkdir(mountAction, os.ModeDir)
 	if err != nil {
-		log.Fatalf("Error creating the action Mountpoint [%s]", mountAction)
+		log.Fatalf("Error creating the action Mountpoint [%s]: %s", mountAction, err)
 	}
 
 	// Mount the block device to the /mountAction point
@@ -50,16 +50,13 @@ func main() {
 		log.Infoln("Changing root before executing command")
 		exitChroot, err = Chroot(mountAction)
 		if err != nil {
-			log.Fatalf("Error changing root to [%s]", mountAction)
+			log.Fatalf("Error changing root to [%s]: %s", mountAction, err)
 		}
 	}
 
 	if defaultInterpreter != "" {
 		// Split the interpreter by space, in the event that the default intprepretter has flags.
 		di := strings.Split(defaultInterpreter, " ")
-		if len(di) == 0 {
-			log.Fatalf("Error parsing [\"DEFAULT_INTERPETER\"] [%s]\n", defaultInterpreter)
-		}
 		// Look for default shell intepreter
 		_, err = os.Stat(di[0])
 		if os.IsNotExist(err) {
@@ -71,11 +68,11 @@ func main() {
 		debugCMD := fmt.Sprintf("%s %v", di[0], di[1:])
 		err = cmd.Start()
 		if err != nil {
-			log.Fatalf("Error starting [%s] [%v]", debugCMD, err)
+			log.Fatalf("Error starting [%s] [%s]", debugCMD, err)
 		}
 		err = cmd.Wait()
 		if err != nil {
-			log.Fatalf("Error running [%s] [%v]", debugCMD, err)
+			log.Fatalf("Error running [%s] [%s]", debugCMD, err)
 		}
 	} else {
 		// Format the cmdLine string into separate execution tasks
@@ -87,11 +84,11 @@ func main() {
 			debugCMD := fmt.Sprintf("%s %v", command[0], command[1:])
 			err = cmd.Start()
 			if err != nil {
-				log.Fatalf("Error starting [%s] [%v]", debugCMD, err)
+				log.Fatalf("Error starting [%s] [%s]", debugCMD, err)
 			}
 			err = cmd.Wait()
 			if err != nil {
-				log.Fatalf("Error running [%s] [%v]", debugCMD, err)
+				log.Fatalf("Error running [%s] [%s]", debugCMD, err)
 			}
 		}
 	}
