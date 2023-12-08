@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -64,7 +63,7 @@ func Write(sourceImage, destinationDevice string, compressed bool) error {
 		if resp.StatusCode == 404 {
 			return fmt.Errorf("%s not found", sourceImage)
 		}
-		return fmt.Errorf("%s", resp.Status)
+		return fmt.Errorf("fetch %s responseStatus: %s", sourceImage, resp.Status)
 	}
 
 	var out io.Reader
@@ -128,7 +127,7 @@ func Write(sourceImage, destinationDevice string, compressed bool) error {
 func findDecompressor(imageURL string, r io.Reader) (io.ReadCloser, error) {
 	switch filepath.Ext(imageURL) {
 	case ".bzip2":
-		return ioutil.NopCloser(bzip2.NewReader(r)), nil
+		return io.NopCloser(bzip2.NewReader(r)), nil
 	case ".gz":
 		reader, err := gzip.NewReader(r)
 		if err != nil {
@@ -140,7 +139,7 @@ func findDecompressor(imageURL string, r io.Reader) (io.ReadCloser, error) {
 		if err != nil {
 			return nil, fmt.Errorf("[ERROR] New xz reader: %w", err)
 		}
-		return ioutil.NopCloser(reader), nil
+		return io.NopCloser(reader), nil
 	case ".zs":
 		reader, err := zstd.NewReader(r)
 		if err != nil {
